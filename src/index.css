@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,6 +7,8 @@
 @layer base {
   body {
     font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #fef3f3 0%, #ffe8f0 50%, #fff5f8 100%);
+    min-height: 100vh;
   }
 }
 
@@ -23,12 +25,26 @@
     animation: bounceSlow 2s infinite;
   }
 
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  .font-dancing {
+    font-family: 'Dancing Script', cursive;
+  }
+
   @keyframes fadeIn {
     from {
       opacity: 0;
+      transform: translateY(10px);
     }
     to {
       opacity: 1;
+      transform: translateY(0);
     }
   }
 
@@ -49,6 +65,24 @@
     }
     50% {
       transform: translateY(-10px);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-15px);
+    }
+  }
+
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 10px rgba(251, 113, 133, 0.3), 0 0 20px rgba(251, 113, 133, 0.2);
+    }
+    to {
+      box-shadow: 0 0 20px rgba(251, 113, 133, 0.5), 0 0 30px rgba(251, 113, 133, 0.3);
     }
   }
 }

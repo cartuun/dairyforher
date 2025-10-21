@@ -31,14 +31,14 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
-      <header className="bg-white border-b border-pink-100 sticky top-0 z-40">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-red-50">
+      <header className="bg-white/95 backdrop-blur-sm border-b border-rose-200 sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full flex items-center justify-center">
-              <Heart className="text-white" size={20} fill="currentColor" />
+            <div className="w-12 h-12 bg-gradient-to-br from-rose-500 via-pink-500 to-red-500 rounded-full flex items-center justify-center shadow-lg animate-glow">
+              <Heart className="text-white" size={22} fill="currentColor" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-rose-500 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold font-dancing bg-gradient-to-r from-rose-600 via-pink-600 to-red-600 bg-clip-text text-transparent">
               DiaryForTwo
             </h1>
           </div>
@@ -46,26 +46,26 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowQuotes(!showQuotes)}
-              className="p-2 rounded-full hover:bg-pink-50 transition"
+              className="p-2 rounded-full hover:bg-rose-50 transition transform hover:scale-110"
               title="Love Quotes"
             >
-              <Quote size={20} className="text-pink-500" />
+              <Quote size={20} className="text-rose-500" />
             </button>
-            <div className="text-sm text-gray-600">
-              Hi, <span className="font-semibold text-pink-600">{profile?.name}</span>
+            <div className="text-sm text-gray-700">
+              Hi, <span className="font-semibold text-rose-600">{profile?.name}</span>
             </div>
             <button
               onClick={handleLogout}
-              className="p-2 rounded-full hover:bg-pink-50 transition"
+              className="p-2 rounded-full hover:bg-rose-50 transition transform hover:scale-110"
               title="Logout"
             >
-              <LogOut size={20} className="text-gray-600" />
+              <LogOut size={20} className="text-gray-600 hover:text-rose-600" />
             </button>
           </div>
         </div>
       </header>
 
-      <nav className="bg-white border-b border-pink-100 sticky top-16 z-30">
+      <nav className="bg-white/95 backdrop-blur-sm border-b border-rose-200 sticky top-16 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-1 overflow-x-auto">
             {navItems.map((item) => {
@@ -77,8 +77,8 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
                   onClick={() => onNavigate(item.id)}
                   className={`flex items-center gap-2 px-4 py-3 border-b-2 transition whitespace-nowrap ${
                     isActive
-                      ? 'border-pink-500 text-pink-600'
-                      : 'border-transparent text-gray-600 hover:text-pink-600'
+                      ? 'border-rose-500 text-rose-600 bg-rose-50'
+                      : 'border-transparent text-gray-600 hover:text-rose-600 hover:bg-rose-50'
                   }`}
                 >
                   <Icon size={18} />
@@ -112,7 +112,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
             </div>
             <button
               onClick={() => setShowQuotes(false)}
-              className="w-full mt-4 bg-gradient-to-r from-rose-400 to-pink-500 text-white py-2 rounded-xl font-medium hover:from-rose-500 hover:to-pink-600 transition"
+              className="w-full mt-4 bg-gradient-to-r from-rose-500 to-pink-500 text-white py-2 rounded-xl font-medium hover:from-rose-600 hover:to-pink-600 transition shadow-lg"
             >
               Close
             </button>

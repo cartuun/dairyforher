@@ -32,22 +32,32 @@ export default function Timeline() {
 
   useEffect(() => {
     loadPosts();
-    subscribeToNewPosts();
+    const cleanup = subscribeToNewPosts();
+    return cleanup;
   }, [filter, user, partnerProfile]);
 
   async function loadPosts() {
     try {
+      if (!user) {
+        setPosts([]);
+        return;
+      }
+
       let query = supabase
         .from('posts')
         .select('*, profiles(id, name)')
         .order('created_at', { ascending: false });
 
-      if (filter === 'mine' && user) {
+      if (filter === 'mine') {
         query = query.eq('user_id', user.id);
       } else if (filter === 'theirs' && partnerProfile) {
         query = query.eq('user_id', partnerProfile.id);
-      } else if (user && partnerProfile) {
-        query = query.in('user_id', [user.id, partnerProfile.id]);
+      } else {
+        const userIds = [user.id];
+        if (partnerProfile) {
+          userIds.push(partnerProfile.id);
+        }
+        query = query.in('user_id', userIds);
       }
 
       const { data, error } = await query;
@@ -80,10 +90,10 @@ export default function Timeline() {
   function subscribeToNewPosts() {
     const channel = supabase
       .channel('posts_changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
         loadPosts();
       })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reactions' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' }, () => {
         loadPosts();
       })
       .subscribe();
@@ -115,6 +125,7 @@ export default function Timeline() {
       setImageUrl('');
       setSongLink('');
       setShowPostForm(false);
+      await loadPosts();
     } catch (error) {
       console.error('Error creating post:', error);
     }
@@ -137,6 +148,7 @@ export default function Timeline() {
       ]);
 
       if (error) throw error;
+      await loadPosts();
     } catch (error) {
       console.error('Error sending miss you:', error);
     }
@@ -187,18 +199,18 @@ export default function Timeline() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+      <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 mb-6 border border-rose-100">
         <div className="flex items-center gap-4 mb-4">
           <button
             onClick={handleMissYou}
-            className="flex-1 bg-gradient-to-r from-rose-400 to-pink-500 text-white py-3 rounded-xl font-medium hover:from-rose-500 hover:to-pink-600 transition flex items-center justify-center gap-2"
+            className="flex-1 bg-gradient-to-r from-rose-500 via-pink-500 to-red-500 text-white py-3 rounded-xl font-medium hover:from-rose-600 hover:via-pink-600 hover:to-red-600 transition flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            <Heart size={20} fill="currentColor" />
+            <Heart size={20} fill="currentColor" className="animate-pulse" />
             I Miss You
           </button>
           <button
             onClick={() => setShowPostForm(!showPostForm)}
-            className="flex-1 bg-gradient-to-r from-purple-400 to-pink-400 text-white py-3 rounded-xl font-medium hover:from-purple-500 hover:to-pink-500 transition"
+            className="flex-1 bg-gradient-to-r from-pink-400 to-rose-400 text-white py-3 rounded-xl font-medium hover:from-pink-500 hover:to-rose-500 transition shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
           >
             New Post
           </button>
@@ -255,7 +267,7 @@ export default function Timeline() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-pink-400 to-rose-400 text-white py-2 rounded-xl font-medium hover:from-pink-500 hover:to-rose-500 transition flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-2 rounded-xl font-medium hover:from-pink-600 hover:to-rose-600 transition flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform hover:scale-[1.01]"
             >
               <Send size={18} />
               Post
@@ -269,10 +281,10 @@ export default function Timeline() {
           <button
             key={f}
             onClick={() => setFilter(f as any)}
-            className={`px-4 py-2 rounded-xl font-medium transition ${
+            className={`px-4 py-2 rounded-xl font-medium transition shadow-md ${
               filter === f
-                ? 'bg-gradient-to-r from-pink-400 to-rose-400 text-white'
-                : 'bg-white text-gray-600 hover:bg-pink-50'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg transform scale-105'
+                : 'bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-rose-50 border border-rose-100'
             }`}
           >
             {f === 'all' ? 'All' : f === 'mine' ? 'Mine' : partnerProfile?.name || 'Theirs'}
@@ -282,20 +294,21 @@ export default function Timeline() {
 
       {loading ? (
         <div className="text-center py-12">
-          <Heart className="animate-bounce-slow text-pink-400 mx-auto mb-4" size={48} />
-          <p className="text-gray-500">Loading memories...</p>
+          <Heart className="animate-float text-rose-500 mx-auto mb-4" size={48} fill="currentColor" />
+          <p className="text-gray-600 font-medium">Loading memories...</p>
         </div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-2xl">
-          <p className="text-gray-500">No posts yet. Start sharing your thoughts!</p>
+        <div className="text-center py-12 bg-white/90 backdrop-blur-sm rounded-2xl border border-rose-100">
+          <Heart className="text-rose-300 mx-auto mb-3" size={48} />
+          <p className="text-gray-600">No posts yet. Start sharing your thoughts!</p>
         </div>
       ) : (
         <div className="space-y-4">
           {posts.map((post) => (
-            <div key={post.id} className="bg-white rounded-2xl shadow-lg p-6 animate-fade-in">
+            <div key={post.id} className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 animate-fade-in border border-rose-100 hover:shadow-2xl transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  <div className="w-10 h-10 bg-gradient-to-br from-rose-500 via-pink-500 to-red-500 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
                     {post.profiles.name[0].toUpperCase()}
                   </div>
                   <div>
@@ -310,8 +323,11 @@ export default function Timeline() {
               </div>
 
               {post.is_miss_you && (
-                <div className="bg-gradient-to-r from-rose-50 to-pink-50 border-l-4 border-pink-400 px-4 py-3 mb-4 rounded">
-                  <p className="text-pink-800 font-medium">{post.content}</p>
+                <div className="bg-gradient-to-r from-rose-100 to-pink-100 border-l-4 border-rose-500 px-4 py-3 mb-4 rounded-lg shadow-md">
+                  <p className="text-rose-900 font-medium flex items-center gap-2">
+                    <Heart size={16} fill="currentColor" className="text-rose-600" />
+                    {post.content}
+                  </p>
                 </div>
               )}
 
@@ -324,13 +340,13 @@ export default function Timeline() {
               )}
 
               {post.song_link && (
-                <div className="mb-4 bg-gradient-to-r from-purple-50 to-pink-50 p-3 rounded-xl flex items-center gap-2">
-                  <Music size={18} className="text-purple-600" />
+                <div className="mb-4 bg-gradient-to-r from-pink-50 to-rose-50 p-3 rounded-xl flex items-center gap-2 border border-pink-200">
+                  <Music size={18} className="text-rose-600" />
                   <a
                     href={post.song_link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-purple-600 hover:underline text-sm"
+                    className="text-rose-600 hover:underline text-sm font-medium"
                   >
                     Listen to song
                   </a>
@@ -349,10 +365,10 @@ export default function Timeline() {
                     <button
                       key={type}
                       onClick={() => handleReaction(post.id, type as any)}
-                      className={`flex items-center gap-1 px-3 py-2 rounded-lg transition ${
+                      className={`flex items-center gap-1 px-3 py-2 rounded-lg transition transform hover:scale-110 ${
                         userReacted
-                          ? 'bg-pink-100 text-pink-600'
-                          : 'bg-gray-50 text-gray-600 hover:bg-pink-50'
+                          ? 'bg-rose-100 text-rose-600 shadow-md'
+                          : 'bg-gray-50 text-gray-600 hover:bg-rose-50 hover:text-rose-500'
                       }`}
                     >
                       <Icon size={18} fill={userReacted ? 'currentColor' : 'none'} />
